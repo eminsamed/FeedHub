@@ -43,6 +43,12 @@ export default function RootLayout({
               >
                 Access groups
               </Link>
+              <Link
+                href="/pagethatwillnotbefound"
+                className="text-white hover:underline"
+              >
+                404 Page
+              </Link>
             </nav>
           </header>
 
@@ -52,11 +58,8 @@ export default function RootLayout({
             <aside className="w-64 bg-gray-100 p-4">
               <nav>
                 <ul>
-                <li className="mb-2">
-                    <Link
-                      href="/"
-                      className="text-gray-700 hover:underline"
-                    >
+                  <li className="mb-2">
+                    <Link href="/" className="text-gray-700 hover:underline">
                       Home
                     </Link>
                   </li>
