@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase authentication için gerekli fonksiyon
 import { auth } from "@/app/firebase/firebaseConfig"; // Firebase auth configuration
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -17,7 +15,6 @@ export default function LoginPage() {
       // Firebase'de kullanıcı giriş işlemi
       await signInWithEmailAndPassword(auth, email, password);
       // Başarılı giriş sonrası Dashboard'a yönlendirme
-      router.push("/dashboard");
     } catch (error: any) {
       alert("Login failed: " + error.message);
     }

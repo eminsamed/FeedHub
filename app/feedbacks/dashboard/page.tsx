@@ -1,6 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase/firebaseConfig"; // Importing Firebase config
+import { db } from "../../firebase/firebaseConfig"; // Importing Firebase config
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -31,7 +33,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1 className="text-5xl mb-5">Dashboard</h1>
 
       {/* Table to display feedbacks */}
       <table>
