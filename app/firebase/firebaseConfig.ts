@@ -1,9 +1,9 @@
-'use client';
-
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
+
+// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY as string,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN as string,
@@ -13,14 +13,11 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID as string,
 };
 
-console.log('Firebase appID', firebaseConfig.appId)
-
-// Initialize Firebase
+//  Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app); // Firebase Authentication
 
 // Initialize Firestore
-const db = getFirestore(app);
+const db = getFirestore(app); // Firestore Database
 
-export const auth = getAuth(app);
-
-export { db };
+export { auth, db };
