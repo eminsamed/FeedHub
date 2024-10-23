@@ -1,20 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase authentication için gerekli fonksiyon
+import { signInWithEmailAndPassword } from "firebase/auth"; // Function required for Firebase authentication
 import { auth } from "@/app/firebase/firebaseConfig"; // Firebase auth configuration
+import { useRouter } from "next/navigation"; // Router for page navigation
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter(); // Hook to handle routing
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
-      // Firebase'de kullanıcı giriş işlemi
+      // User login process in Firebase
       await signInWithEmailAndPassword(auth, email, password);
-      // Başarılı giriş sonrası Dashboard'a yönlendirme
+      // Redirect to Dashboard after successful login
+      router.push("/feedbacks/dashboard"); // Redirecting to Dashboard
     } catch (error: any) {
       alert("Login failed: " + error.message);
     }
