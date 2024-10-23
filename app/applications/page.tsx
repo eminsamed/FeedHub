@@ -1,8 +1,14 @@
 "use client";
-import Link from "next/link";
+
 import CustomLink from "../components/CustomLink";
+import { useApplications } from "../utils/providers/fetchApplications";
+import ApplicationOverview from "./applicationOverview";
 
 export default function Page() {
+
+  const { data: applications } = useApplications(); // Use `refetch` to trigger data fetching
+  console.log(applications);
+
   return (
     <div>
       <h1>Hello, This is the Page for Application Overview!</h1>
@@ -16,6 +22,7 @@ export default function Page() {
           href="/applications/add"
         />
       </div>
+      <ApplicationOverview applications={applications}></ApplicationOverview>
     </div>
   );
 }
