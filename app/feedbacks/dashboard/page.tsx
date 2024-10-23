@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig"; // Importing Firebase config
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  Button,
+} from "@mui/material"; // Importing Material UI components
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -20,7 +31,7 @@ export default function Dashboard() {
     // Set the feedback data into the state
     setFeedbacks(feedbackList);
 
-    // Calculate the total number of feedbacks and the average rating
+    // Calculate total feedback count and average rating
     const total = feedbackList.length;
     const avgRating = feedbackList.reduce((sum, fb) => sum + Number(fb.rating), 0) / total;
 
@@ -35,44 +46,47 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-5xl mb-5">Dashboard</h1>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Dashboard
+      </Typography>
 
-      {/* Table to display feedbacks */}
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>User</th>
-            <th>Feedback</th>
-            <th>Rating</th>
-          </tr>
-        </thead>
-        <tbody id="feedbackTableBody">
-          {/* Render feedbacks dynamically */}
-          {feedbacks.map((fb, index) => (
-            <tr key={index}>
-              <td>{fb.date}</td>
-              <td>{fb.user}</td>
-              <td>{fb.feedback}</td>
-              <td>{fb.rating}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Feedback table */}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>User</TableCell>
+              <TableCell>Feedback</TableCell>
+              <TableCell>Rating</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {/* Render feedbacks dynamically */}
+            {feedbacks.map((fb, index) => (
+              <TableRow key={index}>
+                <TableCell>{fb.date}</TableCell>
+                <TableCell>{fb.user}</TableCell>
+                <TableCell>{fb.feedback}</TableCell>
+                <TableCell>{fb.rating}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Display statistics */}
-      <div>
-        <p>Total Feedbacks: {totalFeedbacks}</p>
-        <p>Average Rating: {averageRating}</p>
-      </div>
+      <Typography variant="body1" gutterBottom>
+        Total Feedbacks: {totalFeedbacks}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        Average Rating: {averageRating}
+      </Typography>
 
-      {/* Button to add a new feedback */}
-      <button
-        id="addFeedbackBtn"
-        onClick={() => router.push("/feedbacks/add")} // Use router.push to navigate to the feedback form page
-      >
+      {/* Button to add new feedback */}
+      <Button variant="contained" color="primary" onClick={() => router.push("/feedbacks/add")}>
         Add New Feedback
-      </button>
+      </Button>
     </div>
   );
 }
