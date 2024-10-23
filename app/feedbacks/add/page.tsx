@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { addDoc, collection } from "firebase/firestore"; // Importing necessary Firebase functions
+import { db } from "@/app/firebase/firebaseConfig"; // Importing Firebase config
 
 export default function Page() {
   // State to store the selected star rating
@@ -9,15 +11,27 @@ export default function Page() {
   const [feedbackText, setFeedbackText] = useState<string>("");
 
   // Form submission handler
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     // Validation: Ensure both rating and feedback are provided
     if (rating === 0 || feedbackText === "") {
       alert("Please provide a rating and feedback.");
     } else {
-      // Feedback successfully submitted
-      alert(`Feedback submitted successfully!\nRating: ${rating}\nFeedback: ${feedbackText}`);
-      // This is where we could add logic to send feedback to Firebase
+      // Add feedback to Firebase Firestore
+      try {
+        await addDoc(collection(db, "feedbacks"), {
+          rating: rating,
+          feedback: feedbackText,
+          createdAt: new Date(), // Add timestamp
+        });
+        alert(`Feedback submitted successfully!\nRating: ${rating}\nFeedback: ${feedbackText}`);
+        // Clear form after submission
+        setRating(0);
+        setFeedbackText("");
+      } catch (error) {
+        console.error("Error adding feedback: ", error);
+        alert("Error submitting feedback.");
+      }
     }
   };
 
