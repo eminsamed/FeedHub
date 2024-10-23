@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig"; // Importing Firebase config
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [totalFeedbacks, setTotalFeedbacks] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const router = useRouter(); // Initialize useRouter
 
   // Function to load feedback data from Firebase (Firestore)
   const loadFeedbacks = async () => {
@@ -65,7 +67,10 @@ export default function Dashboard() {
       </div>
 
       {/* Button to add a new feedback */}
-      <button id="addFeedbackBtn" onClick={() => alert("Redirect to Feedback Form Page")}>
+      <button
+        id="addFeedbackBtn"
+        onClick={() => router.push("/feedbacks/add")} // Use router.push to navigate to the feedback form page
+      >
         Add New Feedback
       </button>
     </div>
