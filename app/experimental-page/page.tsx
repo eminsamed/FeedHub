@@ -8,7 +8,6 @@ export default function AccessGroupsPage() {
   const [inputValue, setInputValue] = useState<string>("");
   const [data, setData] = useState<string[]>([]);
 
-  // Firestore'ye veri yazma
   const writeData = async () => {
     try {
       await addDoc(collection(db, "sampleData"), {
@@ -20,7 +19,6 @@ export default function AccessGroupsPage() {
     }
   };
 
-  // Firestore'dan veri okuma
   const readData = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "sampleData"));
@@ -36,11 +34,8 @@ export default function AccessGroupsPage() {
 
   return (
     <div>
-      {/* Login Page Bileşeni */}
-
       <h2 className="text-3xl mb-7">Login Page try</h2>
-
-      <LoginPage /> {/* Burada login.tsx bileşenini render ediyoruz */}
+      <LoginPage />
 
       
       <h2 className="text-3xl my-7">Simple Read & Write firestore</h2>
