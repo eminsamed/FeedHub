@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth"; // Function required for Firebase authentication
 import { auth } from "@/app/firebase/firebaseConfig"; // Firebase auth configuration
 import { useRouter } from "next/navigation"; // Router for page navigation
+import CustomButton from "../components/CustomButton"; // Importing CustomButton
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,7 +32,8 @@ export default function LoginPage() {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <label>Password:</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit">Log In</button>
+        {/* CustomButton component */}
+        <CustomButton onClick={handleSubmit} label="Log In" />
       </form>
     </div>
   );

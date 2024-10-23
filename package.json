@@ -10,7 +10,10 @@
     "playwright": "npx playwright test --ui"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@firebase/firestore": "^4.7.3",
+    "@mui/material": "^6.1.5",
     "firebase": "^10.14.1",
     "next": "^14.2.15",
     "react": "^18",
