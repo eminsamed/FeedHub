@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material"; // Material UI components
+import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box } from "@mui/material"; // Material UI components
 import { collection, getDocs } from "firebase/firestore"; // Firestore to retrieve feedback data
 import { db } from "../../firebase/firebaseConfig"; // Firebase configuration
+import { useRouter } from "next/navigation"; // Router for page navigation
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]); // State to hold feedback data
   const [open, setOpen] = useState(false); // State to control modal open/close
   const [selectedFeedback, setSelectedFeedback] = useState(null); // State to hold the selected feedback
+  const router = useRouter(); // Router to handle navigation
 
   // Function to load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
@@ -46,15 +38,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
+    <Box sx={{ padding: 3 }}>
       {/* Dashboard title */}
       <Typography variant="h4" component="h1" gutterBottom>
         Dashboard
       </Typography>
 
-      {/* Displaying feedbacks as cards */}
+      {/* Page description */}
+      <Typography variant="body1" gutterBottom>
+        On this page, you can view user feedback, see statistics such as total feedback count and average rating, and manage feedback.
+      </Typography>
+
+      {/* Feedbacks list */}
       {feedbacks.map((fb, index) => (
-        <Card key={index} variant="outlined" style={{ marginBottom: "16px" }}>
+        <Card key={index} variant="outlined" sx={{ marginBottom: "16px" }}>
           <CardContent>
             {/* Display user information */}
             <Typography variant="h6">{fb.user}</Typography>
@@ -98,6 +95,22 @@ export default function Dashboard() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+
+      {/* Add new feedback button */}
+      <Button variant="contained" color="primary" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
+        Add New Feedback
+      </Button>
+
+      {/* Navigation Links */}
+      <Box sx={{ marginTop: 4 }}>
+        <Typography variant="h6">Navigation Links</Typography>
+        <Button onClick={() => router.push("/applications")} variant="outlined" sx={{ marginRight: 2 }}>
+          Applications
+        </Button>
+        <Button onClick={() => router.push("/access-groups")} variant="outlined" sx={{ marginRight: 2 }}>
+          Access Groups
+        </Button>
+      </Box>
+    </Box>
   );
 }
