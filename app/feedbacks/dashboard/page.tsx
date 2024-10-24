@@ -1,72 +1,77 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box } from "@mui/material"; // Material UI components
-import { collection, getDocs } from "firebase/firestore"; // Firestore to retrieve feedback data
-import { db } from "../../firebase/firebaseConfig"; // Firebase configuration
-import { useRouter } from "next/navigation"; // Router for page navigation
+import { useEffect, useState } from "react";
+import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box, Pagination } from "@mui/material"; // Material UI components and Pagination
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
-  const [feedbacks, setFeedbacks] = useState([]); // State to hold feedback data
-  const [open, setOpen] = useState(false); // State to control modal open/close
-  const [selectedFeedback, setSelectedFeedback] = useState(null); // State to hold the selected feedback
-  const router = useRouter(); // Router to handle navigation
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const [feedbacksPerPage] = useState(5); // Feedbacks per page
 
-  // Function to load feedback data from Firebase Firestore
+  const router = useRouter();
+
+  // Load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
-    const feedbackCollection = collection(db, "feedbacks"); // Accessing the "feedbacks" collection in Firestore
-    const feedbackSnapshot = await getDocs(feedbackCollection); // Fetching all documents in the collection
-    const feedbackList = feedbackSnapshot.docs.map((doc) => doc.data()); // Mapping each document to its data
-    setFeedbacks(feedbackList); // Setting the fetched feedback data into the state
+    const feedbackCollection = collection(db, "feedbacks");
+    const feedbackSnapshot = await getDocs(feedbackCollection);
+    const feedbackList = feedbackSnapshot.docs.map((doc) => doc.data());
+    setFeedbacks(feedbackList);
   };
 
-  // Run the loadFeedbacks function once the component is mounted
   useEffect(() => {
     loadFeedbacks();
-  }, []); // The empty array ensures this runs only once on mount
+  }, []);
 
-  // Function to open the modal and set the selected feedback
+  // Get current feedbacks based on pagination
+  const indexOfLastFeedback = currentPage * feedbacksPerPage;
+  const indexOfFirstFeedback = indexOfLastFeedback - feedbacksPerPage;
+  const currentFeedbacks = feedbacks.slice(indexOfFirstFeedback, indexOfLastFeedback);
+
+  // Open modal for feedback details
   const handleClickOpen = (feedback) => {
-    setSelectedFeedback(feedback); // Setting the feedback that was clicked
-    setOpen(true); // Opening the modal dialog
+    setSelectedFeedback(feedback);
+    setOpen(true);
   };
 
-  // Function to close the modal and reset the selected feedback
   const handleClose = () => {
-    setOpen(false); // Closing the modal dialog
-    setSelectedFeedback(null); // Resetting the selected feedback
+    setOpen(false);
+    setSelectedFeedback(null);
+  };
+
+  // Handle page change for pagination
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
   };
 
   return (
     <Box sx={{ padding: 3 }}>
-      {/* Dashboard title */}
       <Typography variant="h4" component="h1" gutterBottom>
         Dashboard
       </Typography>
 
-      {/* Page description */}
       <Typography variant="body1" gutterBottom>
         On this page, you can view user feedback, see statistics such as total feedback count and average rating, and manage feedback.
       </Typography>
 
-      {/* Feedbacks list */}
-      {feedbacks.map((fb, index) => (
+      {/* Feedback Cards */}
+      {currentFeedbacks.map((fb, index) => (
         <Card key={index} variant="outlined" sx={{ marginBottom: "16px" }}>
           <CardContent>
-            {/* Display user information */}
             <Typography variant="h6">{fb.user}</Typography>
             <Typography variant="body2" color="textSecondary">
               {fb.date}
             </Typography>
-            {/* Display the feedback content */}
             <Typography variant="body1">{fb.feedback}</Typography>
-            {/* Display the rating */}
             <Typography variant="body2" color="textSecondary">
               Rating: {fb.rating}
             </Typography>
           </CardContent>
           <CardActions>
-            {/* View button to open the modal and show feedback details */}
             <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
               View
             </Button>
@@ -74,13 +79,15 @@ export default function Dashboard() {
         </Card>
       ))}
 
-      {/* Modal (Dialog) to show the selected feedback details */}
+      {/* Pagination for feedbacks */}
+      <Pagination count={Math.ceil(feedbacks.length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
+
+      {/* Modal for feedback details */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Feedback Detail</DialogTitle>
         <DialogContent>
           {selectedFeedback && (
             <>
-              {/* Display the selected feedback details inside the modal */}
               <Typography>User: {selectedFeedback.user}</Typography>
               <Typography>Date: {selectedFeedback.date}</Typography>
               <Typography>Feedback: {selectedFeedback.feedback}</Typography>
@@ -89,7 +96,6 @@ export default function Dashboard() {
           )}
         </DialogContent>
         <DialogActions>
-          {/* Button to close the modal */}
           <Button onClick={handleClose} color="primary">
             Close
           </Button>
@@ -100,17 +106,6 @@ export default function Dashboard() {
       <Button variant="contained" color="primary" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
         Add New Feedback
       </Button>
-
-      {/* Navigation Links */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h6">Navigation Links</Typography>
-        <Button onClick={() => router.push("/applications")} variant="outlined" sx={{ marginRight: 2 }}>
-          Applications
-        </Button>
-        <Button onClick={() => router.push("/access-groups")} variant="outlined" sx={{ marginRight: 2 }}>
-          Access Groups
-        </Button>
-      </Box>
     </Box>
   );
 }
