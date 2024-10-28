@@ -1,4 +1,4 @@
-"use client"; // Mark as client component
+"use client"; // Client component
 
 import { useEffect, useState } from "react";
 import {
@@ -13,9 +13,11 @@ import {
   DialogActions,
   Box,
   Pagination,
-  TextField, // For editing feedback
-} from "@mui/material"; // Material UI components and Pagination
-import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore"; // Firestore functions
+  TextField,
+  MenuItem, // For filter and sort options
+  Select, // Material UI Select component
+} from "@mui/material";
+import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 
@@ -23,10 +25,12 @@ export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
-  const [editMode, setEditMode] = useState(false); // State to track edit mode
-  const [newFeedbackText, setNewFeedbackText] = useState(""); // State to store the new feedback text
-  const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const [feedbacksPerPage] = useState(5); // Feedbacks per page
+  const [editMode, setEditMode] = useState(false);
+  const [newFeedbackText, setNewFeedbackText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [feedbacksPerPage] = useState(5);
+  const [filterBy, setFilterBy] = useState("all");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const router = useRouter();
 
@@ -36,7 +40,7 @@ export default function Dashboard() {
     const feedbackSnapshot = await getDocs(feedbackCollection);
     const feedbackList = feedbackSnapshot.docs.map((doc) => ({
       ...doc.data(),
-      id: doc.id, // Add id for deletion and editing
+      id: doc.id,
     }));
     setFeedbacks(feedbackList);
   };
@@ -45,16 +49,35 @@ export default function Dashboard() {
     loadFeedbacks();
   }, []);
 
+  // Apply filter and sorting
+  const getFilteredSortedFeedbacks = () => {
+    let filteredFeedbacks = [...feedbacks];
+
+    // Filter feedbacks
+    if (filterBy === "highRating") {
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating >= 4);
+    } else if (filterBy === "lowRating") {
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating < 4);
+    }
+
+    // Sort feedbacks
+    if (sortOrder === "asc") {
+      filteredFeedbacks.sort((a, b) => a.rating - b.rating);
+    } else {
+      filteredFeedbacks.sort((a, b) => b.rating - a.rating);
+    }
+
+    return filteredFeedbacks;
+  };
+
   // Get current feedbacks based on pagination
-  const indexOfLastFeedback = currentPage * feedbacksPerPage;
-  const indexOfFirstFeedback = indexOfLastFeedback - feedbacksPerPage;
-  const currentFeedbacks = feedbacks.slice(indexOfFirstFeedback, indexOfLastFeedback);
+  const currentFeedbacks = getFilteredSortedFeedbacks().slice((currentPage - 1) * feedbacksPerPage, currentPage * feedbacksPerPage);
 
   // Open modal for feedback details or editing
   const handleClickOpen = (feedback, isEditMode = false) => {
     setSelectedFeedback(feedback);
     setEditMode(isEditMode);
-    setNewFeedbackText(feedback.feedback); // Set the current feedback text for editing
+    setNewFeedbackText(feedback.feedback);
     setOpen(true);
   };
 
@@ -67,8 +90,8 @@ export default function Dashboard() {
   // Delete feedback
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "feedbacks", id)); // Delete feedback from Firestore
-      loadFeedbacks(); // Reload feedbacks after deletion
+      await deleteDoc(doc(db, "feedbacks", id));
+      loadFeedbacks();
     } catch (error) {
       console.error("Error deleting feedback: ", error);
     }
@@ -79,9 +102,9 @@ export default function Dashboard() {
     if (selectedFeedback) {
       try {
         const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id);
-        await updateDoc(feedbackDocRef, { feedback: newFeedbackText }); // Update feedback in Firestore
-        loadFeedbacks(); // Reload feedbacks after update
-        handleClose(); // Close modal after update
+        await updateDoc(feedbackDocRef, { feedback: newFeedbackText });
+        loadFeedbacks();
+        handleClose();
       } catch (error) {
         console.error("Error updating feedback: ", error);
       }
@@ -102,6 +125,25 @@ export default function Dashboard() {
       <Typography variant="body1" gutterBottom>
         On this page, you can view, edit, and delete feedback.
       </Typography>
+
+      {/* Filter and Sort options */}
+      <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
+        <Box>
+          <Typography variant="subtitle1">Filter By</Typography>
+          <Select value={filterBy} onChange={(e) => setFilterBy(e.target.value)} fullWidth>
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="highRating">High Rating (4+)</MenuItem>
+            <MenuItem value="lowRating">Low Rating (Below 4)</MenuItem>
+          </Select>
+        </Box>
+        <Box>
+          <Typography variant="subtitle1">Sort Order</Typography>
+          <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} fullWidth>
+            <MenuItem value="asc">Ascending</MenuItem>
+            <MenuItem value="desc">Descending</MenuItem>
+          </Select>
+        </Box>
+      </Box>
 
       {/* Feedback Cards */}
       {currentFeedbacks.map((fb, index) => (
@@ -131,7 +173,7 @@ export default function Dashboard() {
       ))}
 
       {/* Pagination for feedbacks */}
-      <Pagination count={Math.ceil(feedbacks.length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
+      <Pagination count={Math.ceil(getFilteredSortedFeedbacks().length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
 
       {/* Modal for viewing/editing feedback */}
       <Dialog open={open} onClose={handleClose}>
