@@ -1,73 +1,209 @@
-"use client";
+"use client"; // Client component
 
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase/firebaseConfig"; // Importing Firebase config
+import {
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardActions,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Box,
+  Pagination,
+  TextField,
+  MenuItem, // For filter and sort options
+  Select, // Material UI Select component
+} from "@mui/material";
+import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebaseConfig";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
-  const [totalFeedbacks, setTotalFeedbacks] = useState(0);
-  const [averageRating, setAverageRating] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [newFeedbackText, setNewFeedbackText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [feedbacksPerPage] = useState(5);
+  const [filterBy, setFilterBy] = useState("all");
+  const [sortOrder, setSortOrder] = useState("asc");
 
-  // Function to load feedback data from Firebase (Firestore)
+  const router = useRouter();
+
+  // Load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
-    const feedbackCollection = collection(db, "feedbacks"); // Collection name from Firestore
+    const feedbackCollection = collection(db, "feedbacks");
     const feedbackSnapshot = await getDocs(feedbackCollection);
-    const feedbackList = feedbackSnapshot.docs.map((doc) => doc.data());
-
-    // Set the feedback data into the state
+    const feedbackList = feedbackSnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+    }));
     setFeedbacks(feedbackList);
-
-    // Calculate the total number of feedbacks and the average rating
-    const total = feedbackList.length;
-    const avgRating = feedbackList.reduce((sum, fb) => sum + Number(fb.rating), 0) / total;
-
-    setTotalFeedbacks(total);
-    setAverageRating(avgRating.toFixed(1));
   };
 
-  // Run this function when the component is first rendered
   useEffect(() => {
     loadFeedbacks();
   }, []);
 
+  // Apply filter and sorting
+  const getFilteredSortedFeedbacks = () => {
+    let filteredFeedbacks = [...feedbacks];
+
+    // Filter feedbacks
+    if (filterBy === "highRating") {
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating >= 4);
+    } else if (filterBy === "lowRating") {
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating < 4);
+    }
+
+    // Sort feedbacks
+    if (sortOrder === "asc") {
+      filteredFeedbacks.sort((a, b) => a.rating - b.rating);
+    } else {
+      filteredFeedbacks.sort((a, b) => b.rating - a.rating);
+    }
+
+    return filteredFeedbacks;
+  };
+
+  // Get current feedbacks based on pagination
+  const currentFeedbacks = getFilteredSortedFeedbacks().slice((currentPage - 1) * feedbacksPerPage, currentPage * feedbacksPerPage);
+
+  // Open modal for feedback details or editing
+  const handleClickOpen = (feedback, isEditMode = false) => {
+    setSelectedFeedback(feedback);
+    setEditMode(isEditMode);
+    setNewFeedbackText(feedback.feedback);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedFeedback(null);
+    setEditMode(false);
+  };
+
+  // Delete feedback
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, "feedbacks", id));
+      loadFeedbacks();
+    } catch (error) {
+      console.error("Error deleting feedback: ", error);
+    }
+  };
+
+  // Update feedback
+  const handleUpdate = async () => {
+    if (selectedFeedback) {
+      try {
+        const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id);
+        await updateDoc(feedbackDocRef, { feedback: newFeedbackText });
+        loadFeedbacks();
+        handleClose();
+      } catch (error) {
+        console.error("Error updating feedback: ", error);
+      }
+    }
+  };
+
+  // Handle page change for pagination
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
   return (
-    <div>
-      <h1 className="text-5xl mb-5">Dashboard</h1>
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Dashboard
+      </Typography>
 
-      {/* Table to display feedbacks */}
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>User</th>
-            <th>Feedback</th>
-            <th>Rating</th>
-          </tr>
-        </thead>
-        <tbody id="feedbackTableBody">
-          {/* Render feedbacks dynamically */}
-          {feedbacks.map((fb, index) => (
-            <tr key={index}>
-              <td>{fb.date}</td>
-              <td>{fb.user}</td>
-              <td>{fb.feedback}</td>
-              <td>{fb.rating}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Typography variant="body1" gutterBottom>
+        On this page, you can view, edit, and delete feedback.
+      </Typography>
 
-      {/* Display statistics */}
-      <div>
-        <p>Total Feedbacks: {totalFeedbacks}</p>
-        <p>Average Rating: {averageRating}</p>
-      </div>
+      {/* Filter and Sort options */}
+      <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
+        <Box>
+          <Typography variant="subtitle1">Filter By</Typography>
+          <Select value={filterBy} onChange={(e) => setFilterBy(e.target.value)} fullWidth>
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="highRating">High Rating (4+)</MenuItem>
+            <MenuItem value="lowRating">Low Rating (Below 4)</MenuItem>
+          </Select>
+        </Box>
+        <Box>
+          <Typography variant="subtitle1">Sort Order</Typography>
+          <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} fullWidth>
+            <MenuItem value="asc">Ascending</MenuItem>
+            <MenuItem value="desc">Descending</MenuItem>
+          </Select>
+        </Box>
+      </Box>
 
-      {/* Button to add a new feedback */}
-      <button id="addFeedbackBtn" onClick={() => alert("Redirect to Feedback Form Page")}>
+      {/* Feedback Cards */}
+      {currentFeedbacks.map((fb, index) => (
+        <Card key={index} variant="outlined" sx={{ marginBottom: "16px" }}>
+          <CardContent>
+            <Typography variant="h6">{fb.user}</Typography>
+            <Typography variant="body2" color="textSecondary">
+              {fb.date}
+            </Typography>
+            <Typography variant="body1">{fb.feedback}</Typography>
+            <Typography variant="body2" color="textSecondary">
+              Rating: {fb.rating}
+            </Typography>
+          </CardContent>
+          <CardActions>
+            <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
+              View
+            </Button>
+            <Button size="small" color="secondary" onClick={() => handleClickOpen(fb, true)}>
+              Edit
+            </Button>
+            <Button size="small" color="error" onClick={() => handleDelete(fb.id)}>
+              Delete
+            </Button>
+          </CardActions>
+        </Card>
+      ))}
+
+      {/* Pagination for feedbacks */}
+      <Pagination count={Math.ceil(getFilteredSortedFeedbacks().length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
+
+      {/* Modal for viewing/editing feedback */}
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{editMode ? "Edit Feedback" : "Feedback Detail"}</DialogTitle>
+        <DialogContent>
+          {selectedFeedback && (
+            <>
+              <Typography>User: {selectedFeedback.user}</Typography>
+              <Typography>Date: {selectedFeedback.date}</Typography>
+              {editMode ? <TextField fullWidth value={newFeedbackText} onChange={(e) => setNewFeedbackText(e.target.value)} label="Edit Feedback" margin="normal" /> : <Typography>Feedback: {selectedFeedback.feedback}</Typography>}
+              <Typography>Rating: {selectedFeedback.rating}</Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          {editMode ? (
+            <Button onClick={handleUpdate} color="primary">
+              Save
+            </Button>
+          ) : null}
+        </DialogActions>
+      </Dialog>
+
+      {/* Add new feedback button */}
+      <Button variant="contained" color="primary" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
         Add New Feedback
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }

@@ -1,35 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase authentication için gerekli fonksiyon
-import { auth } from "@/app/firebase/firebaseConfig"; // Firebase auth configuration
+import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase authentication
+import { auth } from "@/app/firebase/firebaseConfig"; // Firebase config
+import { useRouter } from "next/navigation"; // Router for page navigation
+import CustomButton from "../components/CustomButton"; // Custom Material UI Button component
+import TextField from "@mui/material/TextField"; // Material UI TextField component
+import Box from "@mui/material/Box"; // Material UI Box component
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(""); // State to store email input
+  const [password, setPassword] = useState(""); // State to store password input
+  const router = useRouter(); // Hook to handle routing
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
-      // Firebase'de kullanıcı giriş işlemi
+      // User login process with Firebase
       await signInWithEmailAndPassword(auth, email, password);
-      // Başarılı giriş sonrası Dashboard'a yönlendirme
+      // Redirect to dashboard after successful login
+      router.push("/feedbacks/dashboard");
     } catch (error: any) {
-      alert("Login failed: " + error.message);
+      alert("Login failed: " + error.message); // Error handling for login failure
     }
   };
 
   return (
-    <div id="loginPage">
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
       <h2>Login Page</h2>
+      {/* Form with email and password fields */}
       <form onSubmit={handleSubmit}>
-        <label>Email:</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <label>Password:</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit">Log In</button>
+        {/* Material UI input for email */}
+        <TextField
+          label="Email"
+          variant="outlined" // Outlined style for the input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          margin="normal"
+          fullWidth
+        />
+        {/* Material UI input for password */}
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined" // Outlined style for the input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          margin="normal"
+          fullWidth
+        />
+        {/* CustomButton for login action */}
+        <CustomButton type="submit">Log In</CustomButton>
       </form>
-    </div>
+    </Box>
   );
 }
