@@ -7,21 +7,21 @@ import { useState } from "react";
 export default function Page() {
   const [inputValue, setInputValue] = useState<string>("");
 
-  const { mutate: addApplication } = useAddApplications();  // `mutate` is used to trigger the mutation
+  const { mutate: addApplication } = useAddApplications(); // `mutate` is used to trigger the mutation
 
-    // Handler for adding a new application
-    const handleAddApplication = () => {
-      const newApplication: Application = {
-        name: inputValue,
-        createdAt: new Date(),
-        accessGroupIds: ["1"],
-        description: "blabla",
-        updatedAt: new Date(),
+  // Handler for adding a new application
+  const handleAddApplication = () => {
+    const newApplication: Application = {
+      name: inputValue,
+      createdAt: new Date(),
+      accessGroupIds: ["1"],
+      description: "blabla",
+      updatedAt: new Date(),
 
-        // Add more fields as needed
-      };
-      addApplication(newApplication);
+      // Add more fields as needed
     };
+    addApplication(newApplication);
+  };
 
   return (
     <div>
@@ -41,10 +41,12 @@ export default function Page() {
         />
 
         {/* Button to write data */}
-        <button onClick={handleAddApplication} style={{ marginRight: "1rem", padding: "0.5rem 1rem" }}>
+        <button
+          onClick={handleAddApplication}
+          style={{ marginRight: "1rem", padding: "0.5rem 1rem" }}
+        >
           Write to Firestore
         </button>
-
       </div>
     </div>
   );
