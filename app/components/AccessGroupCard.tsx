@@ -1,17 +1,16 @@
 import { Card, CardContent, Typography, IconButton } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
+import { AccessGroup } from "../model/AccessGroup";
 
-interface CustomApplicationCardProps {
-  title: string;
-  description: string;
+interface AccessGroupCardProps {
+  accessGroup: AccessGroup
   onSettingsClick?: () => void;
 }
 
-export default function ApplicationCard({
-  title,
-  description,
+export default function AccessGroupCard({
+  accessGroup,
   onSettingsClick,
-}: CustomApplicationCardProps) {
+}: AccessGroupCardProps) {
   return (
     <Card className="relative p-4 mb-6 shadow-lg rounded-lg bg-white max-w-md">
       
@@ -22,11 +21,18 @@ export default function ApplicationCard({
           component="div"
           className="font-semibold text-xl mb-4 text-gray-800"
         >
-          {title}
+          {accessGroup.name}
         </Typography>
         <Typography variant="body2" className="text-gray-600 mt-4">
-          {description}
+          {accessGroup.description}
         </Typography>
+        {accessGroup.accessGroupUsers.map((user) => (
+          <>
+          <div>
+            {user.email} - {user.userPrivilege}
+            </div>
+          </>
+        ))}
       </CardContent>
       
       {/* Settings icon */}

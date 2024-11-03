@@ -1,4 +1,4 @@
-enum UserPrivilege {
+export enum UserPrivilege {
   Viewer,
   Member,
   Administrator
