@@ -43,6 +43,7 @@ export default function Page() {
   return (
     <div className="feedback-container">
       <h2>Send Feedback</h2>
+      <p>On this page, you can submit your feedback, rate your experience, and provide detailed comments. </p> {/* Description text added */}
       {/* Feedback form */}
       <form id="feedbackForm" onSubmit={handleSubmit}>
         {/* Star rating input */}
