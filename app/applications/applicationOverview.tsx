@@ -1,37 +1,37 @@
-"use client";
-
-import React from "react";
 import { Application } from "../model/Application";
-import dayjs from "dayjs";
-import ApplicationCard from "../components/ApplicationCard";
+import { Typography, Button, Card, CardContent } from "@mui/material";
+import { collection, deleteDoc, doc } from "firebase/firestore";
+import { db } from "@/app/firebase/firebaseConfig";
 
-interface ApplicationListProps {
-  applications: Application[] | undefined; // The array of applications to display
+interface ApplicationCardProps {
+  application: Application;
+  onDelete: () => void;
 }
 
-export default function ApplicationList({
-  applications,
-}: ApplicationListProps) {
+export default function ApplicationCard({ application, onDelete }: ApplicationCardProps) {
+  const handleDelete = async () => {
+    try {
+      await deleteDoc(doc(db, "applications", application.id));
+      alert("Application successfully deleted!");
+      onDelete(); // Refresh the list or provide feedback to the user
+    } catch (error) {
+      console.error("Error deleting application: ", error);
+    }
+  };
+
   return (
-    <div>
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6 text-center">Applications</h1>
-        {/* Display a message if the array is empty */}
-        {!applications || applications.length === 0 ? (
-          <p>No applications available</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {applications.map((app) => (
-              <ApplicationCard
-                key={app.id}
-                title={app.name}
-                description={app.description}
-                onSettingsClick={() => alert('does not work yet')}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <Card className="relative p-4 mb-6 shadow-lg rounded-lg bg-white max-w-md">
+      <CardContent>
+        <Typography variant="h5" component="div">
+          {application.name}
+        </Typography>
+        <Typography variant="body2" className="text-gray-600 mt-4">
+          {application.description}
+        </Typography>
+      </CardContent>
+      <Button variant="contained" color="secondary" onClick={handleDelete}>
+        Delete Application
+      </Button>
+    </Card>
   );
 }
