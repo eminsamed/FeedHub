@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore"; // Importing necessary Firebase functions
-import { db } from "@/app/firebase/firebaseConfig"; // Importing Firebase config
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "@/app/firebase/firebaseConfig";
+import { Box, Typography, Card, CardContent, TextField, Button, Rating } from "@mui/material";
 
 export default function Page() {
   // State to store the selected star rating
-  const [rating, setRating] = useState<number>(0);
+  const [rating, setRating] = useState<number | null>(0);
   // State to store the feedback text
   const [feedbackText, setFeedbackText] = useState<string>("");
 
@@ -22,9 +23,9 @@ export default function Page() {
         await addDoc(collection(db, "feedbacks"), {
           rating: rating,
           feedback: feedbackText,
-          createdAt: new Date(), // Add timestamp
+          createdAt: new Date(),
         });
-        alert(`Feedback submitted successfully!\nRating: ${rating}\nFeedback: ${feedbackText}`);
+        alert(`Feedback submitted successfully!`);
         // Clear form after submission
         setRating(0);
         setFeedbackText("");
@@ -35,55 +36,45 @@ export default function Page() {
     }
   };
 
-  // Function to handle star rating click
-  const handleStarClick = (value: number) => {
-    setRating(value); // Set the selected star rating
-  };
-
   return (
-    <div className="feedback-container">
-      <h2>Send Feedback</h2>
-      <p>On this page, you can submit your feedback, rate your experience, and provide detailed comments. </p> {/* Description text added */}
-      {/* Feedback form */}
-      <form id="feedbackForm" onSubmit={handleSubmit}>
-        {/* Star rating input */}
-        <div className="form-group">
-          <label htmlFor="rating">Rating (1-5 stars)</label>
-          <div id="starRating" className="stars">
-            {/* Display stars dynamically and handle clicks */}
-            {[1, 2, 3, 4, 5].map((value) => (
-              <span
-                key={value}
-                className={`star ${rating >= value ? "selected" : ""}`}
-                onClick={() => handleStarClick(value)} // Update rating on click
-              >
-                ★
-              </span>
-            ))}
-          </div>
-          {/* Hidden input to store the selected rating value */}
-          <input type="hidden" id="rating" name="rating" value={rating} />
-        </div>
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Card sx={{ maxWidth: 600, width: "100%", padding: 4 }}>
+        <CardContent>
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography
+              variant="h3"
+              gutterBottom
+              sx={{
+                color: "primary.main", // Renk düzeni
+                fontWeight: "bold", // Kalın yazı stili
+                textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)", // Yazı gölgesi azaltıldı
+              }}
+            >
+              Send Feedback
+            </Typography>
+            <Typography variant="body1" gutterBottom textAlign="center">
+              On this page, you can submit your feedback, rate your experience, and provide detailed comments.
+            </Typography>
+          </Box>
 
-        {/* Feedback text input */}
-        <div className="form-group">
-          <label htmlFor="feedback">Your Feedback</label>
-          <textarea
-            id="feedback"
-            rows={5}
-            placeholder="Enter your feedback"
-            value={feedbackText} // Bind input value to feedbackText state
-            onChange={(e) => setFeedbackText(e.target.value)} // Update feedbackText on change
-          />
-        </div>
+          {/* Form container with flex */}
+          <Box component="form" onSubmit={handleSubmit} mt={3} display="flex" flexDirection="column" alignItems="center">
+            {/* Star Rating */}
+            <Box mb={3} display="flex" flexDirection="column" alignItems="center">
+              <Typography component="legend">Rating (1-5 stars)</Typography>
+              <Rating name="simple-controlled" value={rating} size="large" onChange={(event, newValue) => setRating(newValue)} />
+            </Box>
 
-        {/* Submit button */}
-        <div className="form-group">
-          <button type="submit" className="submit-btn">
-            Submit
-          </button>
-        </div>
-      </form>
-    </div>
+            {/* Feedback Input */}
+            <TextField label="Your Feedback" multiline rows={4} fullWidth variant="outlined" value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Enter your feedback" sx={{ mb: 3 }} />
+
+            {/* Submit Button */}
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Submit
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
