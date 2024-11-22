@@ -31,7 +31,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReactQueryProvider>
           <div className="flex flex-col h-screen">
             <Header />
             {/* Main Content with Sidebar */}
@@ -40,7 +39,6 @@ export default function RootLayout({
               <main className="flex-grow p-8">{children}</main>
             </div>
           </div>
-        </ReactQueryProvider>
       </body>
     </html>
   );
