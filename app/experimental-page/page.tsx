@@ -39,22 +39,14 @@ export default function AccessGroupsPage() {
       {/* Login Page Component */}
       <h2 className="text-3xl mb-7">Login Page try</h2>
       <LoginPage /> {/* Rendering login.tsx component here  */}
-
       <h2 className="text-3xl mb-7">Login Page try</h2>
       <LoginPage />
-
-      <h2 className="text-3xl my-7">Simple Read & Write firestore</h2>
+      <h2 className="text-3xl my-7">Simple Read & Write Firestore</h2>
       <div style={{ padding: "2rem" }}>
-        <h1>Firestore Write & Read Example</h1>
+        <h2>Firestore Write & Read Example</h2>
 
         {/* Input Field */}
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter some text"
-          style={{ padding: "0.5rem", marginBottom: "1rem" }}
-        />
+        <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Enter some text" style={{ padding: "0.5rem", marginBottom: "1rem" }} />
 
         {/* Button to write data */}
         <button onClick={writeData} style={{ marginRight: "1rem", padding: "0.5rem 1rem" }}>
@@ -68,7 +60,7 @@ export default function AccessGroupsPage() {
 
         {/* Display fetched data */}
         <div style={{ marginTop: "2rem" }}>
-          <h2>Fetched Data:</h2>
+          <h3>Fetched Data:</h3>
           {data.length > 0 ? (
             <ul>
               {data.map((item, index) => (
