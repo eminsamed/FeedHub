@@ -87,13 +87,18 @@ export default function Dashboard() {
     setEditMode(false);
   };
 
-  // Delete feedback
+  // Delete feedback with confirmation
   const handleDelete = async (id) => {
-    try {
-      await deleteDoc(doc(db, "feedbacks", id));
-      loadFeedbacks();
-    } catch (error) {
-      console.error("Error deleting feedback: ", error);
+    const userConfirmed = window.confirm("Are you sure you want to delete this feedback?");
+    if (userConfirmed) {
+      try {
+        await deleteDoc(doc(db, "feedbacks", id));
+        loadFeedbacks();
+        alert("Feedback deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting feedback: ", error);
+        alert("An error occurred while deleting the feedback.");
+      }
     }
   };
 
@@ -123,7 +128,7 @@ export default function Dashboard() {
       </Typography>
 
       <Typography variant="body1" gutterBottom>
-        On this page, you can view, edit, and delete feedback.
+        On this page, you can view and delete feedback.
       </Typography>
 
       {/* Filter and Sort options */}
@@ -161,9 +166,6 @@ export default function Dashboard() {
           <CardActions>
             <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
               View
-            </Button>
-            <Button size="small" color="secondary" onClick={() => handleClickOpen(fb, true)}>
-              Edit
             </Button>
             <Button size="small" color="error" onClick={() => handleDelete(fb.id)}>
               Delete
