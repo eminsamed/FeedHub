@@ -1,7 +1,8 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/app/firebase/firebaseConfig";
-
+import { auth } from "../firebase/firebaseConfig";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -28,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await auth.signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed: ", error);
       alert("Login failed: " + error.message);
     } finally {
@@ -41,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await signOut(auth);
       setUser(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Logout failed: ", error);
       alert("Logout failed: " + error.message);
     } finally {
