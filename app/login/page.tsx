@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase authentication
-import { auth } from "@/app/firebase/firebaseConfig"; // Firebase config
+import { useAuth } from "../context/auth-context"; // Import useAuth from AuthContext
 import { useRouter } from "next/navigation"; // Router for page navigation
 import Button from "@mui/material/Button"; // Material UI Button component
 import TextField from "@mui/material/TextField"; // Material UI TextField component
@@ -11,14 +10,15 @@ import Box from "@mui/material/Box"; // Material UI Box component
 export default function LoginPage() {
   const [email, setEmail] = useState(""); // State to store email input
   const [password, setPassword] = useState(""); // State to store password input
+  const { login, loading } = useAuth(); // Get login and loading state from useAuth
   const router = useRouter(); // Hook to handle routing
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
-      // User login process with Firebase
-      await signInWithEmailAndPassword(auth, email, password);
+      // Using login function from useAuth to log in the user
+      await login(email, password);
       // Redirect to dashboard after successful login
       router.push("/feedbacks/dashboard");
     } catch (error: any) {
@@ -53,8 +53,8 @@ export default function LoginPage() {
           fullWidth
         />
         {/* Button for login action */}
-        <Button type="submit" variant="contained">
-          Log In
+        <Button type="submit" variant="contained" disabled={loading}>
+          {loading ? "Logging In..." : "Log In"}
         </Button>
       </form>
     </Box>

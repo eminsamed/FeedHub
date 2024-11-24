@@ -4,7 +4,9 @@ import "./globals.css";
 import ReactQueryProvider from "./utils/providers/ReactQueryProvider";
 import Header from "./header";
 import Sidebar from "./sidebar";
+import { AuthProvider } from "./context/auth-context"; // Import AuthProvider to manage user authentication
 
+// Defining local fonts
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -28,17 +30,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AuthProvider>
+          {" "}
+          {/* Wrapping the application with AuthProvider to manage authentication state globally */}
           <div className="flex flex-col h-screen">
-            <Header />
-            {/* Main Content with Sidebar */}
+            <Header /> {/* Application header */}
+            {/* Main content area with sidebar */}
             <div className="flex flex-grow">
-              <Sidebar />
-              <main className="flex-grow p-8">{children}</main>
+              <Sidebar /> {/* Sidebar for navigation */}
+              <main className="flex-grow p-8">{children}</main> {/* Main content */}
             </div>
           </div>
+        </AuthProvider>
       </body>
     </html>
   );
