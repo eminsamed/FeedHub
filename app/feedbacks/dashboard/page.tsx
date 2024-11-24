@@ -20,6 +20,7 @@ import {
 import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/auth-context"; // Import AuthContext
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -33,15 +34,21 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   const router = useRouter();
+  const { logout } = useAuth(); // Use the logout function from AuthContext
 
+  // Load feedback data from Firebase Firestore
   // Load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
     const feedbackCollection = collection(db, "feedbacks");
     const feedbackSnapshot = await getDocs(feedbackCollection);
-    const feedbackList = feedbackSnapshot.docs.map((doc) => ({
-      ...doc.data(),
-      id: doc.id,
-    }));
+    const feedbackList = feedbackSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id,
+        date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : "N/A", // Format the date if available
+      };
+    });
     setFeedbacks(feedbackList);
   };
 
@@ -121,14 +128,30 @@ export default function Dashboard() {
     setCurrentPage(value);
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed: ", error);
+    }
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+        <Typography variant="h4" component="h1">
+          Dashboard
+        </Typography>
+        {/* Logout Button */}
+        <Button onClick={handleLogout} variant="contained" color="secondary">
+          Logout
+        </Button>
+      </Box>
 
       <Typography variant="body1" gutterBottom>
-        On this page, you can view and delete feedback.
+        On this page, you can view, edit, and delete feedback.
       </Typography>
 
       {/* Filter and Sort options */}
@@ -167,6 +190,9 @@ export default function Dashboard() {
             <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
               View
             </Button>
+            <Button size="small" color="secondary" onClick={() => handleClickOpen(fb, true)}>
+              Edit
+            </Button>
             <Button size="small" color="error" onClick={() => handleDelete(fb.id)}>
               Delete
             </Button>
@@ -184,7 +210,7 @@ export default function Dashboard() {
           {selectedFeedback && (
             <>
               <Typography>User: {selectedFeedback.user}</Typography>
-              <Typography>Date: {selectedFeedback.date}</Typography>
+              <Typography>Date: {selectedFeedback.date}</Typography> {/* Displaying the formatted date */}
               {editMode ? <TextField fullWidth value={newFeedbackText} onChange={(e) => setNewFeedbackText(e.target.value)} label="Edit Feedback" margin="normal" /> : <Typography>Feedback: {selectedFeedback.feedback}</Typography>}
               <Typography>Rating: {selectedFeedback.rating}</Typography>
             </>
