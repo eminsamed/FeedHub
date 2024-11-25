@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"; // Router for page navigation
 import Button from "@mui/material/Button"; // Material UI Button component
 import TextField from "@mui/material/TextField"; // Material UI TextField component
 import Box from "@mui/material/Box"; // Material UI Box component
+import { checkUserAccess } from "../firebase/checkUserAccess"; // Import the function that controls the user's access
+import { auth } from "../firebase/firebaseConfig"; // Add Firebase Authentication reference
 
 export default function LoginPage() {
   const [email, setEmail] = useState(""); // State to store email input
@@ -19,6 +21,13 @@ export default function LoginPage() {
     try {
       // Using login function from useAuth to log in the user
       await login(email, password);
+      const userId = auth.currentUser?.uid;
+
+      if (userId) {
+        //  Check if the user has permission to access a specific application
+        await checkUserAccess("myApp1", userId);
+      }
+
       // Redirect to dashboard after successful login
       router.push("/feedbacks/dashboard");
     } catch (error: any) {
