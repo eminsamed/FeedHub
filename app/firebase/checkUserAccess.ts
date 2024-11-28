@@ -1,5 +1,5 @@
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // Import Firestore db
+import { db } from "./firebaseConfig"; // Import Firestore db connection
 
 const checkUserAccess = async (appId: string, userId: string) => {
   try {
@@ -9,8 +9,8 @@ const checkUserAccess = async (appId: string, userId: string) => {
 
     if (appDoc.exists()) {
       const appData = appDoc.data();
-      // Check if the user has access to this application
-      if (appData.users && appData.users[userId]) {
+      // Check if the user has access to the application
+      if ((appData.users && appData.users[userId]) || (appData.owners && appData.owners[userId])) {
         console.log("User has access permission.");
         // Optional: Redirect to the allowed page
         // router.push("/allowed-page");
