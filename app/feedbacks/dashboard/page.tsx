@@ -1,22 +1,7 @@
 "use client"; // Client component
 
 import { useEffect, useState } from "react";
-import {
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  Pagination,
-  TextField,
-  MenuItem, // For filter and sort options
-  Select, // Material UI Select component
-} from "@mui/material";
+import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box, Pagination, TextField, MenuItem, Select } from "@mui/material";
 import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
@@ -36,7 +21,6 @@ export default function Dashboard() {
   const router = useRouter();
   const { logout } = useAuth(); // Use the logout function from AuthContext
 
-  // Load feedback data from Firebase Firestore
   // Load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
     const feedbackCollection = collection(db, "feedbacks");
@@ -111,15 +95,15 @@ export default function Dashboard() {
 
   // Update feedback
   const handleUpdate = async () => {
-    if (selectedFeedback) {
-      try {
-        const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id);
-        await updateDoc(feedbackDocRef, { feedback: newFeedbackText });
-        loadFeedbacks();
-        handleClose();
-      } catch (error) {
-        console.error("Error updating feedback: ", error);
-      }
+    if (!selectedFeedback) return;
+
+    try {
+      const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id);
+      await updateDoc(feedbackDocRef, { feedback: newFeedbackText });
+      loadFeedbacks();
+      handleClose();
+    } catch (error) {
+      console.error("Error updating feedback: ", error);
     }
   };
 
@@ -151,7 +135,7 @@ export default function Dashboard() {
       </Box>
 
       <Typography variant="body1" gutterBottom>
-        On this page, you can view, edit, and delete feedback.
+        On this page, you can view feedback.
       </Typography>
 
       {/* Filter and Sort options */}
@@ -210,7 +194,7 @@ export default function Dashboard() {
           {selectedFeedback && (
             <>
               <Typography>User: {selectedFeedback.user}</Typography>
-              <Typography>Date: {selectedFeedback.date}</Typography> {/* Displaying the formatted date */}
+              <Typography>Date: {selectedFeedback.date}</Typography>
               {editMode ? <TextField fullWidth value={newFeedbackText} onChange={(e) => setNewFeedbackText(e.target.value)} label="Edit Feedback" margin="normal" /> : <Typography>Feedback: {selectedFeedback.feedback}</Typography>}
               <Typography>Rating: {selectedFeedback.rating}</Typography>
             </>
@@ -220,11 +204,11 @@ export default function Dashboard() {
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          {editMode ? (
+          {editMode && (
             <Button onClick={handleUpdate} color="primary">
               Save
             </Button>
-          ) : null}
+          )}
         </DialogActions>
       </Dialog>
 
