@@ -1,18 +1,18 @@
-"use client";
+"use client"; // Client-side component
 
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "@/app/firebase/firebaseConfig";
+import { db } from "app/firebase/firebaseConfig";
 import { Box, Typography, Card, CardContent, TextField, Button, Rating } from "@mui/material";
+import { useAddFeedback } from "../hooks/useAddFeedback"; // Import the custom hook for adding feedback
 
 export default function Page() {
-  // State to store the selected star rating
   const [rating, setRating] = useState<number | null>(0);
-  // State to store the feedback text
   const [feedbackText, setFeedbackText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false); // Loading state for form submission
 
-  // Form submission handler
+  const { mutate } = useAddFeedback(); // Using the custom hook to add feedback
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -24,13 +24,15 @@ export default function Page() {
 
     setLoading(true); // Set loading state to true
 
-    // Add feedback to Firebase Firestore
+    // Prepare feedback data
+    const feedback = {
+      rating,
+      feedback: feedbackText,
+      createdAt: new Date(),
+    };
+
     try {
-      await addDoc(collection(db, "feedbacks"), {
-        rating,
-        feedback: feedbackText,
-        createdAt: new Date(),
-      });
+      await mutate(feedback); // Use the hook to add feedback
       alert("Feedback submitted successfully!");
       // Clear form after submission
       setRating(0);
@@ -52,9 +54,9 @@ export default function Page() {
               variant="h3"
               gutterBottom
               sx={{
-                color: "primary.main",
-                fontWeight: "bold",
-                textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
+                color: "primary.main", // Primary color for heading
+                fontWeight: "bold", // Bold font for heading
+                textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)", // Subtle text shadow
               }}
             >
               Send Feedback

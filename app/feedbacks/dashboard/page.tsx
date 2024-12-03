@@ -1,11 +1,11 @@
-"use client"; // Client component
+"use client"; // Client-side component
 
 import { useEffect, useState } from "react";
 import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box, Pagination, TextField, MenuItem, Select } from "@mui/material";
 import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/auth-context"; // Import AuthContext
+import { useAuth } from "app/context/auth-context"; // Import AuthContext for managing user authentication
 
 export default function Dashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -21,45 +21,49 @@ export default function Dashboard() {
   const router = useRouter();
   const { logout } = useAuth();
 
+  // Fetch feedbacks from Firebase Firestore
   const loadFeedbacks = async () => {
     try {
-      const feedbackCollection = collection(db, "feedbacks");
-      const feedbackSnapshot = await getDocs(feedbackCollection);
+      const feedbackCollection = collection(db, "feedbacks"); // Reference to 'feedbacks' collection
+      const feedbackSnapshot = await getDocs(feedbackCollection); // Fetch feedback documents
       const feedbackList = feedbackSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
-        date: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString() : "N/A",
+        date: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString() : "N/A", // Format date if exists
       }));
       setFeedbacks(feedbackList);
     } catch (error) {
-      console.error("Error loading feedbacks:", error);
+      console.error("Error loading feedbacks:", error); // Log error if fetching fails
     }
   };
 
   useEffect(() => {
-    loadFeedbacks();
+    loadFeedbacks(); // Load feedbacks when the component mounts
   }, []);
 
+  // Filter and sort the feedbacks based on selected criteria
   const getFilteredSortedFeedbacks = () => {
     let filteredFeedbacks = [...feedbacks];
 
     if (filterBy === "highRating") {
-      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating >= 4);
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating >= 4); // Filter high ratings
     } else if (filterBy === "lowRating") {
-      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating < 4);
+      filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating < 4); // Filter low ratings
     }
 
     if (sortOrder === "asc") {
-      filteredFeedbacks.sort((a, b) => a.rating - b.rating);
+      filteredFeedbacks.sort((a, b) => a.rating - b.rating); // Sort by ascending rating
     } else {
-      filteredFeedbacks.sort((a, b) => b.rating - a.rating);
+      filteredFeedbacks.sort((a, b) => b.rating - a.rating); // Sort by descending rating
     }
 
     return filteredFeedbacks;
   };
 
+  // Pagination: Get the feedbacks to display on the current page
   const currentFeedbacks = getFilteredSortedFeedbacks().slice((currentPage - 1) * feedbacksPerPage, currentPage * feedbacksPerPage);
 
+  // Open dialog to view or edit feedback
   const handleClickOpen = (feedback, isEditMode = false) => {
     setSelectedFeedback(feedback);
     setEditMode(isEditMode);
@@ -73,46 +77,52 @@ export default function Dashboard() {
     setEditMode(false);
   };
 
+  // Handle feedback deletion
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this feedback?")) {
+      // Confirm before deleting
       try {
-        await deleteDoc(doc(db, "feedbacks", id));
-        loadFeedbacks();
-        alert("Feedback deleted successfully.");
+        await deleteDoc(doc(db, "feedbacks", id)); // Delete feedback document from Firestore
+        loadFeedbacks(); // Reload feedbacks after deletion
+        alert("Feedback deleted successfully."); // Notify user on success
       } catch (error) {
-        console.error("Error deleting feedback:", error);
+        console.error("Error deleting feedback:", error); // Log error if deletion fails
       }
     }
   };
 
+  // Handle feedback update
   const handleUpdate = async () => {
-    if (!selectedFeedback) return;
+    if (!selectedFeedback) return; // Return if no feedback is selected
 
     try {
-      const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id);
-      await updateDoc(feedbackDocRef, { feedback: newFeedbackText });
-      loadFeedbacks();
-      handleClose();
+      const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id); // Reference the selected feedback document
+      await updateDoc(feedbackDocRef, { feedback: newFeedbackText }); // Update feedback text
+      loadFeedbacks(); // Reload feedbacks after update
+      handleClose(); // Close the dialog
     } catch (error) {
-      console.error("Error updating feedback:", error);
+      console.error("Error updating feedback:", error); // Log error if update fails
     }
   };
 
+  // Handle page change in pagination
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
+  // Handle user logout
   const handleLogout = async () => {
     try {
-      await logout();
-      router.push("/login");
+      await logout(); // Log out the user using the AuthContext
+      router.push("/login"); // Redirect to login page
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Logout failed:", error); // Log error if logout fails
     }
   };
 
   return (
     <Box sx={{ padding: 3 }}>
+      {/* Dashboard header with logout button */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
         <Typography variant="h4">Dashboard</Typography>
         <Button onClick={handleLogout} variant="contained" color="secondary">
@@ -124,6 +134,7 @@ export default function Dashboard() {
         On this page, you can view and manage feedback.
       </Typography>
 
+      {/* Filter and Sort options */}
       <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
         <Box>
           <Typography variant="subtitle1">Filter By</Typography>
@@ -142,6 +153,7 @@ export default function Dashboard() {
         </Box>
       </Box>
 
+      {/* Render feedback cards */}
       {currentFeedbacks.map((fb) => (
         <Card key={fb.id} variant="outlined" sx={{ marginBottom: 2 }}>
           <CardContent>
@@ -168,8 +180,10 @@ export default function Dashboard() {
         </Card>
       ))}
 
+      {/* Pagination */}
       <Pagination count={Math.ceil(getFilteredSortedFeedbacks().length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
 
+      {/* Feedback detail dialog */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{editMode ? "Edit Feedback" : "Feedback Details"}</DialogTitle>
         <DialogContent>
@@ -188,6 +202,7 @@ export default function Dashboard() {
         </DialogActions>
       </Dialog>
 
+      {/* Add new feedback button */}
       <Button variant="contained" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
         Add New Feedback
       </Button>

@@ -17,8 +17,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // Defines the base URL for relative paths
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./app/*"] // Allows using `@/app` as an alias to the `app` folder
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/firebase/config.js"],
