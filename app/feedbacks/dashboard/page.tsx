@@ -162,7 +162,9 @@ export default function Dashboard() {
       {currentFeedbacks.map((fb) => (
         <Card key={fb.id} variant="outlined" sx={{ marginBottom: 2 }}>
           <CardContent>
-            <Typography variant="h6">{fb.user}</Typography>
+            <Typography variant="body2" sx={{ fontSize: "1rem" }}>
+              {fb.user} {/* Here, the font size of the user's email is smaller */}
+            </Typography>
             <Typography variant="body2" color="textSecondary">
               {fb.date}
             </Typography>
