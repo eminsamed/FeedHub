@@ -155,13 +155,13 @@ export default function Dashboard() {
             </Typography>
           </CardContent>
           <CardActions>
-            <Button size="small" onClick={() => handleClickOpen(fb)}>
+            <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
               View
             </Button>
-            <Button size="small" onClick={() => handleClickOpen(fb, true)}>
+            <Button size="small" color="secondary" onClick={() => handleClickOpen(fb, true)}>
               Edit
             </Button>
-            <Button size="small" onClick={() => handleDelete(fb.id)}>
+            <Button size="small" sx={{ color: "red" }} onClick={() => handleDelete(fb.id)}>
               Delete
             </Button>
           </CardActions>
