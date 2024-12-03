@@ -1,7 +1,7 @@
 "use client"; // Client-side component
 
 import { useEffect, useState } from "react";
-import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box, Pagination, TextField, MenuItem, Select } from "@mui/material";
+import { Typography, Button, Card, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Box, Pagination, TextField, MenuItem, Select, Rating } from "@mui/material";
 import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [newFeedbackText, setNewFeedbackText] = useState("");
+  const [newRating, setNewRating] = useState(0); // New state for rating
   const [currentPage, setCurrentPage] = useState(1);
   const [feedbacksPerPage] = useState(5);
   const [filterBy, setFilterBy] = useState("all");
@@ -68,6 +69,7 @@ export default function Dashboard() {
     setSelectedFeedback(feedback);
     setEditMode(isEditMode);
     setNewFeedbackText(feedback.feedback);
+    setNewRating(feedback.rating); // Set the selected rating
     setOpen(true);
   };
 
@@ -97,7 +99,10 @@ export default function Dashboard() {
 
     try {
       const feedbackDocRef = doc(db, "feedbacks", selectedFeedback.id); // Reference the selected feedback document
-      await updateDoc(feedbackDocRef, { feedback: newFeedbackText }); // Update feedback text
+      await updateDoc(feedbackDocRef, {
+        feedback: newFeedbackText, // Update feedback text
+        rating: newRating, // Update rating
+      });
       loadFeedbacks(); // Reload feedbacks after update
       handleClose(); // Close the dialog
     } catch (error) {
@@ -191,7 +196,18 @@ export default function Dashboard() {
             <>
               <Typography>User: {selectedFeedback.user}</Typography>
               <Typography>Date: {selectedFeedback.date}</Typography>
-              {editMode ? <TextField fullWidth value={newFeedbackText} onChange={(e) => setNewFeedbackText(e.target.value)} label="Edit Feedback" margin="normal" /> : <Typography>Feedback: {selectedFeedback.feedback}</Typography>}
+              {editMode ? (
+                <>
+                  <TextField fullWidth value={newFeedbackText} onChange={(e) => setNewFeedbackText(e.target.value)} label="Edit Feedback" margin="normal" />
+                  {/* Rating control */}
+                  <Box sx={{ marginTop: 2 }}>
+                    <Typography>Rating:</Typography>
+                    <Rating value={newRating} onChange={(e, newValue) => setNewRating(newValue)} /> {/* Rating selector */}
+                  </Box>
+                </>
+              ) : (
+                <Typography>Feedback: {selectedFeedback.feedback}</Typography>
+              )}
               <Typography>Rating: {selectedFeedback.rating}</Typography>
             </>
           )}
