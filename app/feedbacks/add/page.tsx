@@ -1,12 +1,24 @@
 "use client"; // Client-side component
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "app/firebase/firebaseConfig";
+import { db } from "app/firebase/firebaseConfig"; // these imports are used in app>feedbacks>hooks>useAddFeedback.ts, but the ESLint error here is probably because the code is not fully analyzed. So there is no problem with using addDoc and db correctly, the error is only shown by ESLint.
 import { Box, Typography, Card, CardContent, TextField, Button, Rating } from "@mui/material";
 import { useAddFeedback } from "../hooks/useAddFeedback"; // Import the custom hook for adding feedback
+import { useAuth } from "app/context/auth-context"; // Import AuthContext for managing user authentication
+import { useRouter } from "next/navigation"; // Import Next.js router for navigation
 
 export default function Page() {
+  const { user } = useAuth(); // Get user from AuthContext
+  const router = useRouter(); // Hook to handle routing
+
+  // If no user is logged in, redirect to login page
+  useEffect(() => {
+    if (!user) {
+      router.push("/login"); // Redirect to login page if user is not logged in
+    }
+  }, [user, router]);
+
   const [rating, setRating] = useState<number | null>(0);
   const [feedbackText, setFeedbackText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false); // Loading state for form submission

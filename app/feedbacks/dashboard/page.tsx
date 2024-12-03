@@ -20,7 +20,14 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth(); // Get user and logout function from AuthContext
+
+  // Check if user is logged in and redirect to login if not
+  useEffect(() => {
+    if (!user) {
+      router.push("/login"); // If no user is logged in, redirect to login page
+    }
+  }, [user, router]);
 
   // Fetch feedbacks from Firebase Firestore
   const loadFeedbacks = async () => {
