@@ -19,39 +19,36 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   const router = useRouter();
-  const { logout } = useAuth(); // Use the logout function from AuthContext
+  const { logout } = useAuth();
 
-  // Load feedback data from Firebase Firestore
   const loadFeedbacks = async () => {
-    const feedbackCollection = collection(db, "feedbacks");
-    const feedbackSnapshot = await getDocs(feedbackCollection);
-    const feedbackList = feedbackSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        ...data,
+    try {
+      const feedbackCollection = collection(db, "feedbacks");
+      const feedbackSnapshot = await getDocs(feedbackCollection);
+      const feedbackList = feedbackSnapshot.docs.map((doc) => ({
+        ...doc.data(),
         id: doc.id,
-        date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : "N/A", // Format the date if available
-      };
-    });
-    setFeedbacks(feedbackList);
+        date: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString() : "N/A",
+      }));
+      setFeedbacks(feedbackList);
+    } catch (error) {
+      console.error("Error loading feedbacks:", error);
+    }
   };
 
   useEffect(() => {
     loadFeedbacks();
   }, []);
 
-  // Apply filter and sorting
   const getFilteredSortedFeedbacks = () => {
     let filteredFeedbacks = [...feedbacks];
 
-    // Filter feedbacks
     if (filterBy === "highRating") {
       filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating >= 4);
     } else if (filterBy === "lowRating") {
       filteredFeedbacks = filteredFeedbacks.filter((fb) => fb.rating < 4);
     }
 
-    // Sort feedbacks
     if (sortOrder === "asc") {
       filteredFeedbacks.sort((a, b) => a.rating - b.rating);
     } else {
@@ -61,10 +58,8 @@ export default function Dashboard() {
     return filteredFeedbacks;
   };
 
-  // Get current feedbacks based on pagination
   const currentFeedbacks = getFilteredSortedFeedbacks().slice((currentPage - 1) * feedbacksPerPage, currentPage * feedbacksPerPage);
 
-  // Open modal for feedback details or editing
   const handleClickOpen = (feedback, isEditMode = false) => {
     setSelectedFeedback(feedback);
     setEditMode(isEditMode);
@@ -78,22 +73,18 @@ export default function Dashboard() {
     setEditMode(false);
   };
 
-  // Delete feedback with confirmation
   const handleDelete = async (id) => {
-    const userConfirmed = window.confirm("Are you sure you want to delete this feedback?");
-    if (userConfirmed) {
+    if (window.confirm("Are you sure you want to delete this feedback?")) {
       try {
         await deleteDoc(doc(db, "feedbacks", id));
         loadFeedbacks();
         alert("Feedback deleted successfully.");
       } catch (error) {
-        console.error("Error deleting feedback: ", error);
-        alert("An error occurred while deleting the feedback.");
+        console.error("Error deleting feedback:", error);
       }
     }
   };
 
-  // Update feedback
   const handleUpdate = async () => {
     if (!selectedFeedback) return;
 
@@ -103,42 +94,36 @@ export default function Dashboard() {
       loadFeedbacks();
       handleClose();
     } catch (error) {
-      console.error("Error updating feedback: ", error);
+      console.error("Error updating feedback:", error);
     }
   };
 
-  // Handle page change for pagination
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await logout();
       router.push("/login");
     } catch (error) {
-      console.error("Logout failed: ", error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
     <Box sx={{ padding: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-        <Typography variant="h4" component="h1">
-          Dashboard
-        </Typography>
-        {/* Logout Button */}
+        <Typography variant="h4">Dashboard</Typography>
         <Button onClick={handleLogout} variant="contained" color="secondary">
           Logout
         </Button>
       </Box>
 
       <Typography variant="body1" gutterBottom>
-        On this page, you can view feedback.
+        On this page, you can view and manage feedback.
       </Typography>
 
-      {/* Filter and Sort options */}
       <Box sx={{ display: "flex", gap: 2, marginBottom: 2 }}>
         <Box>
           <Typography variant="subtitle1">Filter By</Typography>
@@ -157,9 +142,8 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {/* Feedback Cards */}
-      {currentFeedbacks.map((fb, index) => (
-        <Card key={index} variant="outlined" sx={{ marginBottom: "16px" }}>
+      {currentFeedbacks.map((fb) => (
+        <Card key={fb.id} variant="outlined" sx={{ marginBottom: 2 }}>
           <CardContent>
             <Typography variant="h6">{fb.user}</Typography>
             <Typography variant="body2" color="textSecondary">
@@ -171,25 +155,23 @@ export default function Dashboard() {
             </Typography>
           </CardContent>
           <CardActions>
-            <Button size="small" color="primary" onClick={() => handleClickOpen(fb)}>
+            <Button size="small" onClick={() => handleClickOpen(fb)}>
               View
             </Button>
-            <Button size="small" color="secondary" onClick={() => handleClickOpen(fb, true)}>
+            <Button size="small" onClick={() => handleClickOpen(fb, true)}>
               Edit
             </Button>
-            <Button size="small" color="error" onClick={() => handleDelete(fb.id)}>
+            <Button size="small" onClick={() => handleDelete(fb.id)}>
               Delete
             </Button>
           </CardActions>
         </Card>
       ))}
 
-      {/* Pagination for feedbacks */}
       <Pagination count={Math.ceil(getFilteredSortedFeedbacks().length / feedbacksPerPage)} page={currentPage} onChange={handlePageChange} color="primary" sx={{ marginTop: 2 }} />
 
-      {/* Modal for viewing/editing feedback */}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{editMode ? "Edit Feedback" : "Feedback Detail"}</DialogTitle>
+        <DialogTitle>{editMode ? "Edit Feedback" : "Feedback Details"}</DialogTitle>
         <DialogContent>
           {selectedFeedback && (
             <>
@@ -201,19 +183,12 @@ export default function Dashboard() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          {editMode && (
-            <Button onClick={handleUpdate} color="primary">
-              Save
-            </Button>
-          )}
+          <Button onClick={handleClose}>Cancel</Button>
+          {editMode && <Button onClick={handleUpdate}>Save</Button>}
         </DialogActions>
       </Dialog>
 
-      {/* Add new feedback button */}
-      <Button variant="contained" color="primary" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
+      <Button variant="contained" onClick={() => router.push("/feedbacks/add")} sx={{ marginTop: 2 }}>
         Add New Feedback
       </Button>
     </Box>
