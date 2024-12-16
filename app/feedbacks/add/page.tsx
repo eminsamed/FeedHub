@@ -1,12 +1,12 @@
 "use client"; // Client-side component
 
 import { useState, useEffect } from "react";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "app/firebase/firebaseConfig"; // these imports are used in app>feedbacks>hooks>useAddFeedback.ts, but the ESLint error here is probably because the code is not fully analyzed. So there is no problem with using addDoc and db correctly, the error is only shown by ESLint.
 import { Box, Typography, Card, CardContent, TextField, Button, Rating } from "@mui/material";
 import { useAddFeedback } from "../hooks/useAddFeedback"; // Import the custom hook for adding feedback
 import { useAuth } from "app/context/auth-context"; // Import AuthContext for managing user authentication
 import { useRouter } from "next/navigation"; // Import Next.js router for navigation
+import { ToastContainer, toast } from "react-toastify"; // Importing Toastify for notifications
+import "react-toastify/dist/ReactToastify.css"; // Importing Toastify styles
 
 export default function Page() {
   const { user } = useAuth(); // Get user from AuthContext
@@ -24,6 +24,40 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(false); // Loading state for form submission
 
   const { mutate } = useAddFeedback(); // Using the custom hook to add feedback
+
+  // Success notification function
+  const notifySuccess = () => {
+    toast.success("Feedback submitted successfully!", {
+      position: "top-center", // Use string instead of the object
+      autoClose: 5000, // Auto close after 5 seconds
+      hideProgressBar: true, // Hide progress bar
+      theme: "colored", // Use a colored theme
+      style: {
+        backgroundColor: "#4caf50", // Green color for success
+        color: "white",
+        borderRadius: "8px",
+        padding: "10px",
+        fontWeight: "bold",
+      },
+    });
+  };
+
+  // Error notification function
+  const notifyError = () => {
+    toast.error("Error submitting feedback. Please try again.", {
+      position: "top-center", // Use string instead of the object
+      autoClose: 5000,
+      hideProgressBar: true,
+      theme: "colored",
+      style: {
+        backgroundColor: "#f44336", // Red color for error
+        color: "white",
+        borderRadius: "8px",
+        padding: "10px",
+        fontWeight: "bold",
+      },
+    });
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -45,13 +79,13 @@ export default function Page() {
 
     try {
       await mutate(feedback); // Use the hook to add feedback
-      alert("Feedback submitted successfully!");
+      notifySuccess(); // Show success notification
       // Clear form after submission
       setRating(0);
       setFeedbackText("");
     } catch (error: any) {
       console.error("Error adding feedback:", error.message);
-      alert("Error submitting feedback. Please try again.");
+      notifyError(); // Show error notification
     } finally {
       setLoading(false); // Reset loading state
     }
@@ -96,6 +130,9 @@ export default function Page() {
           </Box>
         </CardContent>
       </Card>
+
+      {/* Toast Notifications container */}
+      <ToastContainer />
     </Box>
   );
 }
