@@ -1,27 +1,38 @@
-// Feedback Insertion Test
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-// Increase the timeout globally for the entire test
-test.setTimeout(60000); // 60 seconds timeout for the entire test suite
+test.setTimeout(60000);
 
-test("Add Feedback", async ({ page }) => {
-  // Go to the login page
-  await page.goto("http://localhost:3000/login");
+test('Add Feedback and verify success message', async ({ page }) => {
+  await page.goto('http://localhost:3000/login');
 
-  // Fill in the login form
-  await page.fill('input[name="email"]', "user@example.com");
-  await page.fill('input[name="password"]', "password123");
-  await page.click('button[type="submit"]');
+  const emailInput = page.getByRole('textbox', { name: 'Email' });
+  const passwordInput = page.getByLabel('Password');
+  const loginButton = page.getByRole('button', { name: 'Log In' });
 
-  // Navigate to the 'Add Feedback' page
-  await page.goto("http://localhost:3000/feedbacks/add");
+  await expect(emailInput).toBeVisible();
+  await expect(passwordInput).toBeVisible();
 
-  // Fill in the feedback form
-  await page.fill('textarea[placeholder="Enter your feedback"]', "This is a test feedback.");
+  await emailInput.fill('emin.samed.yilmaz@hicoders.ch');
+  await passwordInput.fill('Konya42.');
+  await loginButton.click();
 
-  // Submit the feedback form
-  await page.click('button[type="submit"]');
+  await page.waitForURL('http://localhost:3000/feedbacks/dashboard');
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
-  // Check if the success message is visible
-  await expect(page.locator("text=Feedback submitted successfully!")).toBeVisible();
+  await page.goto('http://localhost:3000/feedbacks/add');
+  await page.waitForLoadState('networkidle');
+
+  const feedbackInput = page.getByPlaceholder('Enter your feedback');
+  await expect(feedbackInput).toBeVisible();
+
+  await feedbackInput.fill('This is a test feedback.');
+
+  const fourthStar = page.locator('label[for="feedback-rating-:r3:"]');
+  await expect(fourthStar).toBeVisible();
+  await fourthStar.click();
+
+  await page.getByRole('button', { name: 'Submit' }).click();
+
+  const successMessage = page.locator('text=Feedback submitted successfully!');
+  await expect(successMessage).toBeVisible();
 });

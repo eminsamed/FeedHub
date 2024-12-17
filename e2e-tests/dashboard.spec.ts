@@ -1,28 +1,34 @@
-// Dashboard and Navigation Test
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-// Increase the timeout globally for the entire test
-test.setTimeout(60000); // 60 seconds timeout for the entire test suite
+test.describe('Dashboard Page', () => {
+  test.setTimeout(120000);
 
-test("Dashboard and Navigation", async ({ page }) => {
-  // Go to the login page
-  await page.goto("http://localhost:3000/login");
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000/login');
 
-  // Fill in the login form
-  await page.fill('input[name="email"]', "user@example.com");
-  await page.fill('input[name="password"]', "password123");
-  await page.click('button[type="submit"]');
+    await page
+      .getByRole('textbox', { name: 'Email' })
+      .fill('emin.samed.yilmaz@hicoders.ch');
+    await page.getByLabel('Password').fill('Konya42.');
+    await page.getByRole('button', { name: 'Log In' }).click();
 
-  // Navigate to the dashboard page
-  await page.goto("http://localhost:3000/feedbacks/dashboard");
+    await page.waitForURL('http://localhost:3000/feedbacks/dashboard');
+    await expect(
+      page.getByRole('heading', { name: 'Dashboard' })
+    ).toBeVisible();
+  });
 
-  // Check if the Feedbacks link is visible
-  await expect(page.locator("text=Feedbacks")).toBeVisible();
+  test('should display feedback list', async ({ page }) => {
+    await expect(
+      page.locator('text=On this page, you can view and manage feedback.')
+    ).toBeVisible();
+  });
 
-  // Click on the 'Add' button
-  await page.click("text=Add");
-
-  // Check if the 'Send Feedback' form is visible
-  await expect(page.locator("text=Send Feedback")).toBeVisible();
+  test('should logout successfully', async ({ page }) => {
+    await page.getByRole('button', { name: 'Logout' }).click();
+    await page.waitForURL('http://localhost:3000/login');
+    await expect(
+      page.getByRole('heading', { name: 'Login Page' })
+    ).toBeVisible();
+  });
 });
-

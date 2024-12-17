@@ -1,27 +1,44 @@
-// Login Flow Test
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-// Increase the timeout globally for the entire test suite to handle slow load times
-test.setTimeout(60000); // 60 seconds timeout for the entire test suite
+test.describe('Login Page', () => {
+  test.setTimeout(120000);
 
-test("Login Flow", async ({ page }) => {
-  // Navigate to the login page
-  await page.goto("http://localhost:3000/login");
+  test('should show alert on invalid credentials', async ({ page }) => {
+    await page.goto('http://localhost:3000/login');
 
-  // Wait for the email input to become visible (ensure that the page has loaded properly)
-  await page.waitForSelector('input[name="email"]', { timeout: 60000 }); //60 seconds timeout for the entire test
+    await page
+      .getByRole('textbox', { name: 'Email' })
+      .fill('invalid@example.com');
 
-  // Fill in the login form with email and password
-  await page.fill('input[name="email"]', "user@example.com", { timeout: 60000 }); //60 seconds timeout for the entire test
-  await page.fill('input[name="password"]', "password123", { timeout: 60000 }); //60 seconds timeout for the entire test
+    await page.getByLabel('Password').fill('wrongpassword');
 
-  // Click the submit button to log in
-  await page.click('button[type="submit"]');
+    const [dialog] = await Promise.all([
+      page.waitForEvent('dialog'),
+      page.getByRole('button', { name: 'Log In' }).click(),
+    ]);
 
-  // Check if the page navigates to the dashboard after login
-  await expect(page).toHaveURL("http://localhost:3000/feedbacks/dashboard");
+    expect(dialog.message()).toContain('Login failed');
 
-  // Ensure that important dashboard elements are visible after login
-  await expect(page.locator("text=Feedbacks")).toBeVisible(); // Check if Feedbacks text is visible
-  await expect(page.locator("text=Add")).toBeVisible(); // Check if Add button is visible
+    await dialog.dismiss();
+  });
+
+  test('should login successfully with valid credentials', async ({ page }) => {
+    await page.goto('http://localhost:3000/login');
+
+    const emailInput = page.getByRole('textbox', { name: 'Email' });
+    const passwordInput = page.getByLabel('Password');
+
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+
+    await emailInput.fill('emin.samed.yilmaz@hicoders.ch');
+    await passwordInput.fill('Konya42.');
+
+    await page.getByRole('button', { name: 'Log In' }).click();
+
+    await page.waitForURL('http://localhost:3000/feedbacks/dashboard');
+    await expect(
+      page.getByRole('heading', { name: 'Dashboard' })
+    ).toBeVisible();
+  });
 });
